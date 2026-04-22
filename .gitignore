@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 数据文件（太大，不上传）
+data/
+*.csv
+*.npy
+*.npz
+*.idx*
+*.pkl
+*.pk
+
+# 模型和结果
+models/
+results/
+
+# IDE
+.vscode/
+.idea/
+
+# 虚拟环境
+algo/
+venv/
+env/
