@@ -18,6 +18,7 @@ from src.KNN import knn_classify
 from src.logistic_regression import logistic_regression_classify, LogisticRegression
 from src.linear_regression import linear_regression_predict, LinearRegression
 from src.SVM import svm_classify, SVM
+from src.ANN import SimpleANN, ann_classify
 
 # 创建保存目录
 os.makedirs('models', exist_ok=True)
@@ -49,7 +50,7 @@ def plot_loss(losses, title, filename):
 def main():
     parser = argparse.ArgumentParser(description='Machine Learning Project')
     parser.add_argument('--algo', type=str, required=True,
-                        choices=['knn', 'logistic', 'linear', 'svm'],
+                        choices=['knn', 'logistic', 'linear', 'svm', 'ann'],
                         help='Algorithm to use')
     parser.add_argument('--data', type=str, required=True,
                         choices=['titanic', 'house', 'mnist', 'cifar10'],
@@ -66,6 +67,7 @@ def main():
     parser.add_argument('--class_a', type=int, default=None, help='First class for binary classification')
     parser.add_argument('--class_b', type=int, default=None, help='Second class for binary classification')
     parser.add_argument('--hog', action='store_true', help='Use HOG features for image data')
+    parser.add_argument('--hidden', type=str, default='64,32', help='Hidden layer sizes (comma-separated)')
     
     args = parser.parse_args()
     
@@ -92,7 +94,7 @@ def main():
             X_test = extract_hog_features(X_test_gray)
     
     # 二分类算法处理多分类数据集
-    if args.algo in ['logistic', 'svm'] and args.data in ['mnist', 'cifar10']:
+    if args.algo in ['logistic', 'svm', 'ann'] and args.data in ['mnist', 'cifar10']:
         if args.class_a is None or args.class_b is None:
             raise ValueError(f"For {args.algo} on {args.data}, you must specify --class_a and --class_b")
         X_train, y_train = filter_two_classes(X_train, y_train, args.class_a, args.class_b)
@@ -131,6 +133,23 @@ def main():
             y_pred = model.predict(X_train)
             acc = accuracy_score(y_train, y_pred)
             print(f"Train accuracy: {acc:.4f}")
+        elif args.algo == 'ann':
+            hidden_sizes = [int(x) for x in args.hidden.split(',')]
+            output_size = len(np.unique(y_train))
+            model = SimpleANN(X_train.shape[1], hidden_sizes, output_size, 
+                            learning_rate=args.lr, n_iterations=args.epochs)
+            model.fit(X_train, y_train)
+            model_params = {
+                'weights': model.weights, 
+                'biases': model.biases,
+                'layer_sizes': [X_train.shape[1]] + hidden_sizes + [output_size]
+            }
+            save_model(model_params, args.algo, args.data)
+            y_pred = model.predict(X_train)
+            acc = accuracy_score(y_train, y_pred)
+            print(f"Train accuracy: {acc:.4f}")
+            plot_loss(model.losses, 'ANN Training Loss', f'ann_loss_{datetime.now().strftime("%Y%m%d")}.png')
+            plot_loss(model.accuracies, 'ANN Training Accuracy', f'ann_accuracy_{datetime.now().strftime("%Y%m%d")}.png')
     elif args.process == 'test':
         import glob
         pattern = f"models/{args.algo}_{args.data}_*.pk"
@@ -159,6 +178,15 @@ def main():
             model = SVM()
             model.w = model_params['w']
             model.b = model_params['b']
+            y_pred = model.predict(X_test)
+        elif args.algo == 'ann':
+            model = SimpleANN(
+                model_params['layer_sizes'][0],
+                model_params['layer_sizes'][1:-1],
+                model_params['layer_sizes'][-1]
+            )
+            model.weights = model_params['weights']
+            model.biases = model_params['biases']
             y_pred = model.predict(X_test)
         
         if args.algo == 'linear':
