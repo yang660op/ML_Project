@@ -1,8 +1,89 @@
 # ML_Project
 
-机器学习课程项目，实现KNN、逻辑回归、线性回归、SVM算法，支持Titanic、房价、MNIST、CIFAR-10数据集。
+机器学习课程项目，实现多种经典机器学习算法，支持多个常用数据集。
+
+## 支持的算法
+
+| 算法 | 说明 | 适用任务 |
+|------|------|----------|
+| KNN | K近邻算法 | 分类 |
+| Logistic Regression | 逻辑回归 | 二分类/多分类 |
+| Linear Regression | 线性回归 | 回归 |
+| SVM | 支持向量机 | 二分类/多分类 |
+| ANN | 人工神经网络 | 分类 |
+
+## 支持的数据集
+
+- **Titanic** - 泰坦尼克号生存预测（二分类）
+- **House** - 房价预测（回归）
+- **MNIST** - 手写数字识别（多分类）
+- **CIFAR-10** - 图像分类（多分类）
 
 ## 环境配置
 
 ```bash
 pip install -r requirements.txt
+```
+
+## 使用方法
+
+### 训练模型
+
+```bash
+# KNN
+python main.py --algo knn --data titanic --process train --k 3
+
+# Logistic Regression
+python main.py --algo logistic --data titanic --process train --lr 0.01 --epochs 1000
+
+# Linear Regression
+python main.py --algo linear --data house --process train --method gd
+
+# SVM
+python main.py --algo svm --data titanic --process train --lr 0.01 --epochs 1000
+
+# ANN (神经网络)
+python main.py --algo ann --data titanic --process train --epochs 500 --hidden 64,32
+```
+
+### 测试模型
+
+```bash
+python main.py --algo ann --data titanic --process test
+```
+
+### 参数说明
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--algo` | 算法选择 | 必选 |
+| `--data` | 数据集选择 | 必选 |
+| `--process` | 训练/测试 | 必选 |
+| `--k` | KNN的K值 | 3 |
+| `--lr` | 学习率 | 0.01 |
+| `--epochs` | 迭代次数 | 1000 |
+| `--hidden` | ANN隐藏层大小 | 64,32 |
+| `--hog` | 使用HOG特征 | false |
+
+## 项目结构
+
+```
+.
+├── main.py              # 主程序入口
+├── src/
+│   ├── ANN.py           # 人工神经网络
+│   ├── KNN.py           # K近邻算法
+│   ├── logistic_regression.py  # 逻辑回归
+│   ├── linear_regression.py    # 线性回归
+│   ├── SVM.py           # 支持向量机
+│   └── data_preprocess.py       # 数据预处理
+├── data/                # 数据目录
+├── models/              # 保存的模型
+└── results/             # 输出结果
+```
+
+## 输出结果
+
+训练完成后会自动保存：
+- 模型文件：`models/`
+- 曲线图/结果：`results/`
